@@ -1,0 +1,15 @@
+{
+    "manifest_version": 2,
+    "name": "Instagram Tracker",
+    "version": "1.0.0",
+    "description": "Shows you any relevant information about your instagram account",
+    "browser_action": {
+        "default_popup": "popup.html",
+        "default_title": "Instagram tracker"
+    },
+    "permissions": [
+        "activeTab",
+        "tabs"
+      ]
+    
+}
