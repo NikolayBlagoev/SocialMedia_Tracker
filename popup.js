@@ -63,6 +63,28 @@ class DoublyLinkedList {
 
 
 
+
+var readPage = (resolve, reject)=>{
+  return new Promise((resolve, reject)=>{
+    var port;
+
+    function connected(p) {
+      port = p;
+      console.log("conn");
+      port.postMessage({instruction: "Get current followers"});
+      port.onMessage.addListener(function(msg) {
+        console.log(msg.response);
+        console.log("hi");
+        resolve("a");
+
+      });
+    }
+    chrome.runtime.onConnect.addListener(connected);  
+  });
+}
+
+
+
 var readDB = (db,username) => {
   return new Promise((resolve, reject) => {
     try{
@@ -102,10 +124,10 @@ var connectDB = (username,resolve, reject) => {
   });
 }
 
-
+button =document.getElementById("done"); 
 document.addEventListener("DOMContentLoaded", function() {
   text = document.getElementById("fuck"); 
- 
+  button.style.visibility='hidden';
 
   chrome.tabs.query({active: true, lastFocusedWindow: true}, tabs => {
    
@@ -125,11 +147,24 @@ document.addEventListener("DOMContentLoaded", function() {
           var dbll = new DoublyLinkedList();
           dbll.insertHead(new Node("ibrahim"));
 
-          text.innerHTML=url[3];
+          //User has opened their follower list
+          chrome.tabs.executeScript(null, {
+            file: "content.js"
+          }, function() {});
+        
+          text.innerHTML="Click the button when you have scrolled to the bottom of your follower list";
+          button.style.visibility='visible';
 
-          Promise.all([connectDB(url[3]).then((ress)=>readDB(ress,url[3]))]).then((values) => {
+
+          Promise.all([readPage(),connectDB(url[3]).then((ress)=>readDB(ress,url[3]))]).then((values) => {
             console.log(values);
           });
+         
+
+
+    
+
+        
           //in the next world war, jacked knife jugernaut, I am born again
           //class="wo9IH QN7kB "
         }
