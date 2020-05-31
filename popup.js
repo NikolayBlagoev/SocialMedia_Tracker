@@ -1,3 +1,5 @@
+//Node Class for the DLL
+
 class Node {
   constructor(value) {
     this.value = value;
@@ -6,6 +8,7 @@ class Node {
   }
 }
 
+//DLL for easier traversal
 
 class DoublyLinkedList {
   constructor() {
@@ -63,28 +66,23 @@ class DoublyLinkedList {
 
 
 
-
+//Get current followers from page
+//Communication between extension and injected script
 var readPage = (resolve, reject)=>{
   return new Promise((resolve, reject)=>{
-    var port;
-
-    function connected(p) {
-      port = p;
-      console.log("conn");
-      port.postMessage({instruction: "Get current followers"});
-      port.onMessage.addListener(function(msg) {
-        console.log(msg.response);
-        console.log("hi");
-        resolve("a");
-
+    chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+      
+      chrome.tabs.sendMessage(tabs[0].id, {msg: "send info"}, function(response) {
+        console.log(response.msg);
+        resolve("a")
       });
-    }
-    chrome.runtime.onConnect.addListener(connected);  
+    });
+    
   });
 }
 
 
-
+//Get information from indexedDB
 var readDB = (db,username) => {
   return new Promise((resolve, reject) => {
     try{
@@ -102,6 +100,8 @@ var readDB = (db,username) => {
   });
 }
 
+
+//Connect to indexedDB
 var connectDB = (username,resolve, reject) => {
   return new Promise((resolve, reject) => {
     window.indexedDB=window.indexedDB||window.mozIndexedDB||window.webkitIndexedDB;
@@ -124,11 +124,35 @@ var connectDB = (username,resolve, reject) => {
   });
 }
 
+
+//Inject script
+function inject(){
+  //Makes sure we don't inject twice.
+  chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+        
+    chrome.tabs.sendMessage(tabs[0].id, {msg: "test"}, function(response) {
+      try{
+      console.log(response.msg);
+      }catch(err){
+        chrome.tabs.executeScript(null, {
+        file: "content.js"
+        }, function() {});
+      }
+    });
+
+  });
+}
+
+
+
+function main(){
+
+}
+
 button =document.getElementById("done"); 
 document.addEventListener("DOMContentLoaded", function() {
   text = document.getElementById("fuck"); 
-  button.style.visibility='hidden';
-
+  
   chrome.tabs.query({active: true, lastFocusedWindow: true}, tabs => {
    
     let url = tabs[0].url;
@@ -136,33 +160,30 @@ document.addEventListener("DOMContentLoaded", function() {
       url=url.split('/');
       if(url.length>3){
      
-     
-     
       if(url[2]=="www.instagram.com"){
         text.innerHTML="Please navigate to your account's followers list"
         if(url.length==4||url.length==5){
           text.innerHTML="Please navigate to your account's followers list"
         }else{
-
+          //User has opened their follower list
           var dbll = new DoublyLinkedList();
           dbll.insertHead(new Node("ibrahim"));
 
-          //User has opened their follower list
-          chrome.tabs.executeScript(null, {
-            file: "content.js"
-          }, function() {});
-        
+          //We inject sctript
+          inject();
+
+
+          
           text.innerHTML="Click the button when you have scrolled to the bottom of your follower list";
           button.style.visibility='visible';
-
-
-          Promise.all([readPage(),connectDB(url[3]).then((ress)=>readDB(ress,url[3]))]).then((values) => {
-            console.log(values);
-          });
          
+          button.addEventListener("click", function(){
+           
+            Promise.all([readPage(),connectDB(url[3]).then((ress)=>readDB(ress,url[3]))]).then((values) => {
+              console.log(values);
+            });
+          });
 
-
-    
 
         
           //in the next world war, jacked knife jugernaut, I am born again
@@ -172,4 +193,8 @@ document.addEventListener("DOMContentLoaded", function() {
     }
     }
   });
+
+
+
+  
   }, false);

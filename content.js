@@ -1,37 +1,36 @@
 
 
-var port =chrome.runtime.connect({name: "instagramTracker"});
+var port;
 
-
-
-port.onMessage.addListener(function(msg) {
-    console.log(msg);
-    try{
-    respond();
-    }catch(err){
-        port =chrome.runtime.connect({name: "instagramTracker"});
+chrome.runtime.onMessage.addListener(
+    function(request, sender, sendResponse) {
+        console.log("mamammma miaa "+request.msg);
+        if(request.msg=="test"){
+            sendResponse({msg: "here"}) ;
+        }else{
         try{
-            respond();
-        }catch(err0){
-
+            sendResponse({msg: respond()}) ;
+        }catch(err){
+           
         }
     }
-});
+    });
+
+
 
 let flag = true;
 
 function respond() {
-
+            console.log("res")
  
             a = document.getElementsByClassName('oMwYe');
             if(a.length > 0){
-                console.log("giving up")
-                return;
+                console.log("giving up");
+                return "still have";
             }
             if(flag){
             console.log("sending message")
-            
-                port.postMessage({source: "ended"});
+            return "done";
                 flag=false;
            
         
